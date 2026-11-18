@@ -1,0 +1,117 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <h1>Treatment Plan: <span style="color: var(--primary);">{{ risk.risk_title }}</span></h1>
+    <a href="/" class="btn btn-outline">← Back</a>
+</div>
+
+<!-- Risk Summary Banner -->
+<div class="card" style="margin-bottom: 1.5rem; border-left: 4px solid var(--warning);">
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+        <div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Threat</div>
+            <div style="font-weight: 500; margin-top: 0.25rem;">{{ risk.threat_name or 'Unspecified Threat' }}</div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Vulnerability</div>
+            <div style="font-weight: 500; margin-top: 0.25rem;">{{ risk.vulnerability_name or 'Unspecified Vulnerability' }}</div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Inherent Risk Score</div>
+            <div style="margin-top: 0.25rem;">
+                {% if assessment %}
+                    {% set score = assessment.RiskScore %}
+                    <span class="badge {% if score >= 15 %}badge-critical{% elif score >= 10 %}badge-high{% elif score >= 5 %}badge-medium{% else %}badge-low{% endif %}" style="font-size: 1rem;">
+                        {{ assessment.Likelihood }}×{{ assessment.Impact }} = {{ score }}
+                    </span>
+                {% else %}
+                    <span class="badge badge-medium">N/A</span>
+                {% endif %}
+            </div>
+        </div>
+        <div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); text-transform: uppercase;">Residual Risk Score</div>
+            <div style="margin-top: 0.25rem;">
+                {% if assessment %}
+                    {% set rscore = assessment.ResidualScore %}
+                    <span class="badge {% if rscore >= 15 %}badge-critical{% elif rscore >= 10 %}badge-high{% elif rscore >= 5 %}badge-medium{% else %}badge-low{% endif %}" style="font-size: 1rem;">
+                        {{ assessment.ResidualLikelihood }}×{{ assessment.ResidualImpact }} = {{ rscore }}
+                    </span>
+                {% else %}
+                    <span class="badge badge-medium">N/A</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Treatment Form -->
+<div class="card" style="max-width: 800px;">
+    <h2 style="font-size: 1.1rem; margin-bottom: 1.25rem;">🛡️ Configure Treatment & Internal Control</h2>
+    <form method="POST" action="/treatment/{{ risk_id }}" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="treatment_option" style="font-weight: 500;">Treatment Strategy</label>
+            <select id="treatment_option" name="treatment_option" required
+                    style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+                <option value="" disabled {% if not plan %}selected{% endif %}>Select Strategy...</option>
+                {% for option in treatment_options %}
+                <option value="{{ option }}" {% if plan and plan.treatment_strategy == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="control_type" style="font-weight: 500;">Control Type</label>
+            <select id="control_type" name="control_type" required
+                    style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+                {% for ct in control_types %}
+                <option value="{{ ct }}" {% if plan and plan.control_type == ct %}selected{% endif %}>{{ ct }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="control_description" style="font-weight: 500;">Control Description / Recommended Action</label>
+            <textarea id="control_description" name="control_description" rows="3"
+                      style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main); resize: vertical;">{{ plan.control_description if plan else 'Standard security hardening control' }}</textarea>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="responsible_person" style="font-weight: 500;">Responsible Person</label>
+            <input type="text" id="responsible_person" name="responsible_person" required
+                   value="{{ plan.responsible_person if plan else '' }}"
+                   placeholder="e.g., Security Team Lead"
+                   style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="deadline" style="font-weight: 500;">Deadline</label>
+            <input type="date" id="deadline" name="deadline" required
+                   value="{{ plan.target_date if plan else '' }}"
+                   style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="phase" style="font-weight: 500;">Phase</label>
+            <input type="number" id="phase" name="phase" value="{{ plan.phase if plan else 1 }}" required min="1"
+                   style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="status" style="font-weight: 500;">Status</label>
+            <select id="status" name="status" required
+                    style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+                {% for s in statuses %}
+                <option value="{{ s }}" {% if plan and plan.status_id == s %}selected{% endif %}>{{ s }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="grid-column: 1 / -1; margin-top: 1rem;">
+            <button type="submit" class="btn" style="width: 100%; padding: 1rem; font-size: 1rem;">💾 Save Treatment Plan</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,199 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <h1>Risk Dashboard & 5×5 Matrix</h1>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <a href="/ingest_logs" class="btn">🔍 SIEM Log Ingest</a>
+        <a href="/add_asset" class="btn btn-outline">➕ Add Asset</a>
+        <a href="/add_risk" class="btn btn-outline">⚠️ Log Manual Risk</a>
+        <a href="/report" class="btn btn-outline">📋 Generate Audit Report</a>
+    </div>
+</div>
+
+<!-- KPI Summary Cards -->
+<div class="kpi-grid">
+    <div class="kpi-card">
+        <div class="kpi-label">Monitored Assets</div>
+        <div class="kpi-value" style="color: var(--primary);">{{ kpis.total_assets }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">SIEM Alerts Processed</div>
+        <div class="kpi-value" style="color: var(--warning);">{{ kpis.total_alerts }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Critical Risks (Inherent → Residual)</div>
+        <div class="kpi-value" style="color: var(--danger);">{{ kpis.critical_inherent_count }} → {{ kpis.critical_residual_count }}</div>
+    </div>
+    <div class="kpi-card">
+        <div class="kpi-label">Net Risk Reduction</div>
+        <div class="kpi-value" style="color: var(--success);">{{ kpis.risk_reduction_pct }}%</div>
+    </div>
+</div>
+
+<!-- 5×5 Risk Heatmap Matrices -->
+<div class="matrix-wrapper">
+    <!-- Inherent Risk Matrix -->
+    <div class="card">
+        <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">📊 Inherent Risk 5×5 Heatmap (Pre-Treatment)</h2>
+        <div class="heatmap-grid">
+            <!-- Header row -->
+            <div class="heatmap-label">L \ I →</div>
+            {% for i in range(1, 6) %}
+            <div class="heatmap-label">{{ i }}</div>
+            {% endfor %}
+
+            {% for l in range(5, 0, -1) %}
+            <div class="heatmap-label">{{ l }}</div>
+            {% for i in range(1, 6) %}
+            {% set score = l * i %}
+            <div class="heatmap-cell {% if score >= 15 %}cell-critical{% elif score >= 10 %}cell-high{% elif score >= 5 %}cell-medium{% else %}cell-low{% endif %}">
+                <span class="cell-score">{{ score }}</span>
+                <div>
+                    {% for r in inherent_matrix[l][i] %}
+                    <span class="risk-pill" title="{{ r.risk_title }} ({{ r.asset_name }})">R-{{ r.risk_id }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Residual Risk Matrix -->
+    <div class="card">
+        <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">🛡️ Residual Risk 5×5 Heatmap (Post-Control)</h2>
+        <div class="heatmap-grid">
+            <!-- Header row -->
+            <div class="heatmap-label">L \ I →</div>
+            {% for i in range(1, 6) %}
+            <div class="heatmap-label">{{ i }}</div>
+            {% endfor %}
+
+            {% for l in range(5, 0, -1) %}
+            <div class="heatmap-label">{{ l }}</div>
+            {% for i in range(1, 6) %}
+            {% set score = l * i %}
+            <div class="heatmap-cell {% if score >= 15 %}cell-critical{% elif score >= 10 %}cell-high{% elif score >= 5 %}cell-medium{% else %}cell-low{% endif %}">
+                <span class="cell-score">{{ score }}</span>
+                <div>
+                    {% for r in residual_matrix[l][i] %}
+                    <span class="risk-pill" title="{{ r.risk_title }} ({{ r.asset_name }})">R-{{ r.risk_id }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endfor %}
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<!-- Active Risk Register Table -->
+<div class="card" style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">📋 Prioritized Risk Register</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Risk & Threat/Vuln Pair</th>
+                    <th>Target Asset (IP)</th>
+                    <th>SIEM Alerts</th>
+                    <th>Inherent (L×I)</th>
+                    <th>Control & Status</th>
+                    <th>Residual (L×I)</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for risk in risks %}
+                <tr>
+                    <td style="font-weight: 600;">R-{{ risk.risk_id }}</td>
+                    <td>
+                        <div style="font-weight: 500;">{{ risk.risk_title }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted); margin-top: 2px;">
+                            {{ risk.threat_name }} / {{ risk.vulnerability_name }}
+                        </div>
+                    </td>
+                    <td>
+                        <div>{{ risk.asset_name }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ risk.ip_address }}</div>
+                    </td>
+                    <td>
+                        <span class="badge {% if risk.alert_count >= 10 %}badge-critical{% elif risk.alert_count >= 5 %}badge-high{% else %}badge-medium{% endif %}">
+                            {{ risk.alert_count }}
+                        </span>
+                    </td>
+                    <td>
+                        {% set score = risk.risk_score %}
+                        <span class="badge {% if score >= 15 %}badge-critical{% elif score >= 10 %}badge-high{% elif score >= 5 %}badge-medium{% else %}badge-low{% endif %}">
+                            {{ risk.likelihood_name }}×{{ risk.impact_name }} = {{ score }}
+                        </span>
+                    </td>
+                    <td>
+                        <div style="font-size: 0.85rem;">{{ risk.treatment_strategy }} ({{ risk.control_type }})</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ risk.treatment_status }}</div>
+                    </td>
+                    <td>
+                        {% set rscore = risk.residual_score %}
+                        <span class="badge {% if rscore >= 15 %}badge-critical{% elif rscore >= 10 %}badge-high{% elif rscore >= 5 %}badge-medium{% else %}badge-low{% endif %}">
+                            {{ risk.residual_likelihood }}×{{ risk.residual_impact }} = {{ rscore }}
+                        </span>
+                    </td>
+                    <td>
+                        <a href="/treatment/{{ risk.risk_id }}" class="btn btn-sm btn-outline">Manage Control</a>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="8" style="text-align: center; padding: 2rem; color: var(--text-muted);">No risks logged yet. Use SIEM Log Ingest or manually add a risk.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Platform Assets Table -->
+<div class="card">
+    <h2 style="font-size: 1.25rem; margin-bottom: 1rem;">🖥️ Monitored Platform Assets</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Asset Name</th>
+                    <th>IP Address</th>
+                    <th>Category</th>
+                    <th>Owner</th>
+                    <th>Business Criticality</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                <tr>
+                    <td style="font-weight: 500;">{{ asset.asset_name }}</td>
+                    <td><code style="color: var(--primary);">{{ asset.ip_address }}</code></td>
+                    <td style="color: var(--text-muted);">{{ asset.category_name }}</td>
+                    <td style="color: var(--text-muted);">{{ asset.owner }}</td>
+                    <td>
+                        {% if asset.criticality >= 4 %}
+                            <span class="badge badge-critical">{{ asset.criticality }}/5 — Critical</span>
+                        {% elif asset.criticality == 3 %}
+                            <span class="badge badge-high">{{ asset.criticality }}/5 — High</span>
+                        {% elif asset.criticality == 2 %}
+                            <span class="badge badge-medium">{{ asset.criticality }}/5 — Medium</span>
+                        {% else %}
+                            <span class="badge badge-low">{{ asset.criticality }}/5 — Low</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="5" style="text-align: center; padding: 2rem; color: var(--text-muted);">No assets logged yet.</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

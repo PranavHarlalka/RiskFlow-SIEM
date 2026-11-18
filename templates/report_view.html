@@ -1,0 +1,267 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<style>
+    @media print {
+        .sidebar, .no-print, .header { display: none !important; }
+        .main-content { padding: 0 !important; }
+        body { background: white; color: black; }
+        .card { border: 1px solid #ddd; box-shadow: none; }
+        table { font-size: 0.8rem; }
+        th, td { padding: 0.5rem; }
+        .report-section { page-break-inside: avoid; }
+    }
+
+    .report-section {
+        margin-bottom: 2.5rem;
+    }
+
+    .report-section h2 {
+        font-size: 1.25rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 2px solid var(--border);
+    }
+
+    .report-section h2 .section-num {
+        color: var(--primary);
+        margin-right: 0.5rem;
+    }
+</style>
+
+<div class="header no-print">
+    <h1>📋 ISO/IEC 27005 Security Risk Assessment & Audit Report</h1>
+    <div style="display: flex; gap: 0.75rem;">
+        <button onclick="window.print()" class="btn">🖨️ Print / Save as PDF</button>
+        <a href="/report/export.md" class="btn btn-outline">📥 Download Markdown Report</a>
+        <a href="/" class="btn btn-outline">← Dashboard</a>
+    </div>
+</div>
+
+<!-- Section 1: Executive Summary -->
+<div class="report-section">
+    <div class="card">
+        <h2><span class="section-num">§1</span> Executive Summary & Risk Posture</h2>
+        <p style="color: var(--text-muted); margin-bottom: 1.25rem;">
+            This report provides a comprehensive security risk assessment aligned with ISO/IEC 27005:2022,
+            generated dynamically from the RiskFlow Automated SIEM-to-Risk Management Pipeline.
+        </p>
+        <div class="kpi-grid">
+            <div class="kpi-card">
+                <div class="kpi-label">Total Monitored Assets</div>
+                <div class="kpi-value" style="color: var(--primary);">{{ kpis.total_assets }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">SIEM Alerts Processed</div>
+                <div class="kpi-value" style="color: var(--warning);">{{ kpis.total_alerts }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Active Risk Entries</div>
+                <div class="kpi-value" style="color: var(--text-main);">{{ kpis.total_risks }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Critical Inherent → Residual</div>
+                <div class="kpi-value" style="color: var(--danger);">{{ kpis.critical_inherent }} → {{ kpis.critical_residual }}</div>
+            </div>
+            <div class="kpi-card">
+                <div class="kpi-label">Net Risk Reduction</div>
+                <div class="kpi-value" style="color: var(--success);">{{ kpis.risk_reduction_pct }}%</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Section 2: Asset Inventory -->
+<div class="report-section">
+    <div class="card">
+        <h2><span class="section-num">§2</span> Monitored Asset Inventory & Business Criticality Valuation</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Asset ID</th>
+                        <th>Asset Name</th>
+                        <th>IP Address</th>
+                        <th>Type</th>
+                        <th>Owner</th>
+                        <th>Criticality</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for a in assets %}
+                    <tr>
+                        <td>{{ a.AssetID }}</td>
+                        <td style="font-weight: 500;">{{ a.AssetName }}</td>
+                        <td><code>{{ a.IPAddress }}</code></td>
+                        <td>{{ a.AssetType }}</td>
+                        <td style="color: var(--text-muted);">{{ a.Owner }}</td>
+                        <td>
+                            {% if a.BusinessCriticality >= 4 %}
+                                <span class="badge badge-critical">{{ a.BusinessCriticality }}/5</span>
+                            {% elif a.BusinessCriticality == 3 %}
+                                <span class="badge badge-high">{{ a.BusinessCriticality }}/5</span>
+                            {% else %}
+                                <span class="badge badge-medium">{{ a.BusinessCriticality }}/5</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Section 3: SIEM Threat & Vulnerability Catalog -->
+<div class="report-section">
+    <div class="card">
+        <h2><span class="section-num">§3</span> Automated SIEM Threat & Vulnerability Catalog (T-01–T-06 / V-01–V-06)</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Rule ID</th>
+                        <th>Rule Name</th>
+                        <th>Threat</th>
+                        <th>Vulnerability</th>
+                        <th>Severity</th>
+                        <th>Control Type</th>
+                        <th>Suggested Control</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in rules %}
+                    <tr>
+                        <td style="font-weight: 600; color: var(--primary);">{{ r.RuleID }}</td>
+                        <td>{{ r.RuleName }}</td>
+                        <td><span class="badge badge-high">{{ r.ThreatCode }}</span> {{ r.ThreatName }}</td>
+                        <td><span class="badge badge-medium">{{ r.VulnCode }}</span> {{ r.VulnerabilityName }}</td>
+                        <td>
+                            {% if r.BaseSeverity >= 4 %}
+                                <span class="badge badge-critical">{{ r.BaseSeverity }}/5</span>
+                            {% else %}
+                                <span class="badge badge-high">{{ r.BaseSeverity }}/5</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ r.DefaultControlType }}</td>
+                        <td style="font-size: 0.8rem; max-width: 250px;">{{ r.SuggestedControl }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Section 4: Risk Register -->
+<div class="report-section">
+    <div class="card">
+        <h2><span class="section-num">§4</span> Inherent vs. Residual Risk Register & Control Hierarchy</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Risk ID</th>
+                        <th>Description</th>
+                        <th>Asset</th>
+                        <th>Inherent (L×I=Score)</th>
+                        <th>Control (Type)</th>
+                        <th>Residual (L×I=Score)</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in risks %}
+                    <tr>
+                        <td style="font-weight: 600;">R-{{ r.RiskID }}</td>
+                        <td>
+                            <div style="font-weight: 500;">{{ r.Description }}</div>
+                            <div style="font-size: 0.7rem; color: var(--text-muted);">{{ r.ThreatName }} / {{ r.VulnerabilityName }}</div>
+                        </td>
+                        <td>{{ r.AssetName }} ({{ r.IPAddress }})</td>
+                        <td>
+                            {% set score = r.RiskScore %}
+                            <span class="badge {% if score >= 15 %}badge-critical{% elif score >= 10 %}badge-high{% elif score >= 5 %}badge-medium{% else %}badge-low{% endif %}">
+                                {{ r.Likelihood }}×{{ r.Impact }} = {{ score }}
+                            </span>
+                        </td>
+                        <td>
+                            {{ r.TreatmentOption }} ({{ r.ControlType }})
+                            <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 2px;">{{ r.ControlDescription[:80] }}</div>
+                        </td>
+                        <td>
+                            {% set rscore = r.ResidualScore %}
+                            <span class="badge {% if rscore >= 15 %}badge-critical{% elif rscore >= 10 %}badge-high{% elif rscore >= 5 %}badge-medium{% else %}badge-low{% endif %}">
+                                {{ r.ResidualLikelihood }}×{{ r.ResidualImpact }} = {{ rscore }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if r.TreatmentStatus == 'Completed' %}
+                                <span class="badge badge-low">✅ {{ r.TreatmentStatus }}</span>
+                            {% elif r.TreatmentStatus == 'In Progress' %}
+                                <span class="badge badge-high">⏳ {{ r.TreatmentStatus }}</span>
+                            {% else %}
+                                <span class="badge badge-medium">📋 {{ r.TreatmentStatus }}</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Section 5: Audit Sign-Off -->
+<div class="report-section">
+    <div class="card">
+        <h2><span class="section-num">§5</span> Formal Audit Issues & Residual Risk Sign-Off Table</h2>
+        <div style="overflow-x: auto;">
+            <table>
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Audit Finding</th>
+                        <th>Inherent Score</th>
+                        <th>Residual Score</th>
+                        <th>Responsible Owner</th>
+                        <th>Sign-Off Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in risks %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td style="font-weight: 500;">{{ r.Description }}</td>
+                        <td>
+                            <span class="badge {% if r.RiskScore >= 15 %}badge-critical{% elif r.RiskScore >= 10 %}badge-high{% else %}badge-medium{% endif %}">
+                                {{ r.RiskScore }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge {% if r.ResidualScore >= 15 %}badge-critical{% elif r.ResidualScore >= 10 %}badge-high{% elif r.ResidualScore >= 5 %}badge-medium{% else %}badge-low{% endif %}">
+                                {{ r.ResidualScore }}
+                            </span>
+                        </td>
+                        <td style="color: var(--text-muted);">{{ r.ResponsiblePerson }}</td>
+                        <td>
+                            {% if r.TreatmentStatus == 'Completed' %}
+                                <span class="badge badge-low">✅ Signed Off</span>
+                            {% elif r.TreatmentStatus == 'In Progress' %}
+                                <span class="badge badge-high">⏳ In Progress</span>
+                            {% else %}
+                                <span class="badge badge-medium">📋 Pending</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <p style="margin-top: 1.5rem; color: var(--text-muted); font-size: 0.85rem;">
+            <em>Report generated by RiskFlow on {{ today_date }}. 
+            Framework: ISO/IEC 27005:2022 Information Security Risk Management.</em>
+        </p>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,21 @@
+Nov 18 03:14:01 bastion sshd[12001]: Failed password for root from 185.220.101.42 port 44821 ssh2
+Nov 18 03:14:03 bastion sshd[12002]: Failed password for admin from 185.220.101.42 port 44822 ssh2
+Nov 18 03:14:05 bastion sshd[12003]: Failed password for ubuntu from 185.220.101.42 port 44823 ssh2
+Nov 18 03:14:07 bastion sshd[12004]: Failed password for deploy from 185.220.101.42 port 44824 ssh2
+Nov 18 03:14:09 bastion sshd[12005]: Failed password for git from 185.220.101.42 port 44825 ssh2
+Nov 18 03:14:11 bastion sshd[12006]: Failed password for root from 185.220.101.42 port 44826 ssh2
+Nov 18 03:14:13 bastion sshd[12007]: Failed password for test from 185.220.101.42 port 44827 ssh2
+Nov 18 03:14:15 bastion sshd[12008]: Failed password for oracle from 185.220.101.42 port 44828 ssh2
+Nov 18 03:14:17 bastion sshd[12009]: Failed password for postgres from 185.220.101.42 port 44829 ssh2
+Nov 18 03:14:19 bastion sshd[12010]: Failed password for root from 185.220.101.42 port 44830 ssh2
+Nov 18 03:14:21 authdb sshd[12011]: Failed password for dbadmin from 185.220.101.42 port 44831 ssh2
+Nov 18 03:14:23 authdb sshd[12012]: Failed password for root from 185.220.101.42 port 44832 ssh2
+Nov 18 03:14:25 authdb sshd[12013]: Failed password for sa from 185.220.101.42 port 44833 ssh2
+Nov 18 03:14:27 authdb sshd[12014]: Failed password for backup from 185.220.101.42 port 44834 ssh2
+Nov 18 03:14:29 authdb sshd[12015]: Failed password for nagios from 185.220.101.42 port 44835 ssh2
+Nov 18 03:15:01 cicd sudo: contractor : user NOT in sudoers ; TTY=pts/1 ; PWD=/home/contractor ; USER=root ; COMMAND=/bin/cat /etc/shadow
+Nov 18 03:15:03 cicd sudo: contractor : user NOT in sudoers ; TTY=pts/1 ; PWD=/home/contractor ; USER=root ; COMMAND=/usr/bin/passwd root
+Nov 18 03:15:05 cicd sudo: intern : user NOT in sudoers ; TTY=pts/2 ; PWD=/home/intern ; USER=root ; COMMAND=/bin/cat /etc/shadow
+Nov 18 03:15:07 cicd sudo: contractor : user NOT in sudoers ; TTY=pts/1 ; PWD=/home/contractor ; USER=root ; COMMAND=/bin/cat /etc/shadow
+Nov 18 03:15:09 cicd sudo: www-data : user NOT in sudoers ; TTY=pts/3 ; PWD=/var/www ; USER=root ; COMMAND=/bin/cat /etc/shadow
+Nov 18 03:15:11 cicd sudo: contractor : authentication failure ; logname=contractor ; uid=1001 ; euid=0 ; tty=/dev/pts/1 ; ruser=contractor ; rhost= ; user=root

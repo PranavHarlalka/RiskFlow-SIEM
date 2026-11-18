@@ -1,0 +1,84 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <h1>Log New Risk</h1>
+    <a href="/" class="btn btn-outline">← Back</a>
+</div>
+
+<div class="card" style="max-width: 800px;">
+    <form method="POST" action="/add_risk" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+
+        <div style="grid-column: 1 / -1; display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="description" style="font-weight: 500;">Risk Description / Title</label>
+            <input type="text" id="description" name="description" required
+                   placeholder="e.g., Unauthorized access to production database"
+                   style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="threat_name" style="font-weight: 500;">Threat Name</label>
+            <input type="text" id="threat_name" name="threat_name"
+                   placeholder="e.g., T-07: Phishing Credential Harvest"
+                   style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="vulnerability_name" style="font-weight: 500;">Vulnerability Name</label>
+            <input type="text" id="vulnerability_name" name="vulnerability_name"
+                   placeholder="e.g., V-07: Lack of FIDO2 MFA"
+                   style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="asset_id" style="font-weight: 500;">Affected Asset (Optional)</label>
+            <select id="asset_id" name="asset_id"
+                    style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+                <option value="" selected>No Specific Asset...</option>
+                {% for a in assets %}
+                <option value="{{ a.asset_id }}">{{ a.asset_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="category" style="font-weight: 500;">Risk Category</label>
+            <select id="category" name="category" required
+                    style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+                <option value="" disabled selected>Select Category...</option>
+                {% for c in categories %}
+                <option value="{{ c }}">{{ c }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="likelihood" style="font-weight: 500;">Likelihood (1-5)</label>
+            <select id="likelihood" name="likelihood" required
+                    style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+                <option value="5">5 - Almost Certain</option>
+                <option value="4">4 - Likely</option>
+                <option value="3">3 - Possible</option>
+                <option value="2">2 - Unlikely</option>
+                <option value="1">1 - Rare</option>
+            </select>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+            <label for="impact" style="font-weight: 500;">Impact (1-5)</label>
+            <select id="impact" name="impact" required
+                    style="padding: 0.75rem; border: 1px solid var(--border); border-radius: 4px; background: var(--surface-color); color: var(--text-main);">
+                <option value="5">5 - Critical / Disastrous</option>
+                <option value="4">4 - Major / Severe</option>
+                <option value="3">3 - Moderate</option>
+                <option value="2">2 - Minor</option>
+                <option value="1">1 - Insignificant</option>
+            </select>
+        </div>
+
+        <div style="grid-column: 1 / -1; margin-top: 1rem;">
+            <button type="submit" class="btn" style="width: 100%; padding: 1rem; font-size: 1rem;">Log Risk</button>
+        </div>
+    </form>
+</div>
+{% endblock %}

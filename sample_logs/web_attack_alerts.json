@@ -1,0 +1,68 @@
+[
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "203.0.113.55",
+    "timestamp": "2026-11-18T03:20:01Z",
+    "raw_log": "GET /login?user=admin'%20OR%201=1-- HTTP/1.1 Host: 10.0.1.20 User-Agent: sqlmap/1.7"
+  },
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "203.0.113.55",
+    "timestamp": "2026-11-18T03:20:03Z",
+    "raw_log": "GET /api/users?id=1%20UNION%20SELECT%20username,password%20FROM%20users-- HTTP/1.1 Host: 10.0.1.20"
+  },
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "203.0.113.55",
+    "timestamp": "2026-11-18T03:20:05Z",
+    "raw_log": "GET /search?q=%27%20UNION%20SELECT%20table_name%20FROM%20information_schema.tables-- HTTP/1.1 Host: 10.0.1.20"
+  },
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "198.51.100.99",
+    "timestamp": "2026-11-18T03:21:01Z",
+    "raw_log": "GET /download?file=../../../../etc/shadow HTTP/1.1 Host: 10.0.1.20 User-Agent: Nikto/2.1.6"
+  },
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "198.51.100.99",
+    "timestamp": "2026-11-18T03:21:03Z",
+    "raw_log": "GET /static?path=../../../../../../proc/self/environ HTTP/1.1 Host: 10.0.1.20"
+  },
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "198.51.100.99",
+    "timestamp": "2026-11-18T03:21:05Z",
+    "raw_log": "GET /files?name=....//....//etc/passwd HTTP/1.1 Host: 10.0.1.20"
+  },
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "45.33.32.156",
+    "timestamp": "2026-11-18T03:22:01Z",
+    "raw_log": "TCP SYN scan detected from 45.33.32.156 - Nmap Scripting Engine v7.94 - scanning ports 22,80,443,3306,8080"
+  },
+  {
+    "target_ip": "10.0.1.20",
+    "source_ip": "45.33.32.156",
+    "timestamp": "2026-11-18T03:22:03Z",
+    "raw_log": "Nikto - Target: 10.0.1.20 - Server: nginx/1.24.0 - /admin/ found - directory indexing enabled"
+  },
+  {
+    "target_ip": "10.0.1.40",
+    "source_ip": "10.0.2.15",
+    "timestamp": "2026-11-18T03:23:01Z",
+    "raw_log": "GET /support/export.har HTTP/1.1 Host: 10.0.1.40 Cookie: session_id=eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.okta_admin_live"
+  },
+  {
+    "target_ip": "10.0.1.40",
+    "source_ip": "10.0.2.15",
+    "timestamp": "2026-11-18T03:23:03Z",
+    "raw_log": "GET /support/export.har HTTP/1.1 Host: 10.0.1.40 Authorization: Bearer eyJhbGciOiJSUzI1NiJ9.zendesk_agent_token_live"
+  },
+  {
+    "target_ip": "10.0.1.40",
+    "source_ip": "10.0.2.16",
+    "timestamp": "2026-11-18T03:23:05Z",
+    "raw_log": "GET /support/export.har HTTP/1.1 Host: 10.0.1.40 Cookie: session_id=eyJhbGciOiJIUzI1NiJ9.freshdesk_session_unredacted"
+  }
+]

@@ -1,0 +1,137 @@
+{% extends "layout.html" %}
+
+{% block content %}
+<div class="header">
+    <h1>🔍 SIEM Log Ingestion & Attack Simulator</h1>
+    <a href="/" class="btn btn-outline">← Dashboard</a>
+</div>
+
+<!-- 1-Click Live Attack Simulator Bar -->
+<div class="card" style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">⚡ 1-Click Live Attack Simulator</h2>
+    <p style="color: var(--text-muted); margin-bottom: 1rem; font-size: 0.85rem;">
+        Generate synthetic attack logs instantly — no external VM setup required. Each button simulates a real-world threat scenario.
+    </p>
+    <div style="display: flex; gap: 0.75rem; flex-wrap: wrap;">
+        <form method="POST" action="/ingest_logs" style="display: inline;">
+            <input type="hidden" name="scenario" value="ssh_bruteforce">
+            <button type="submit" class="btn btn-danger btn-sm">🔐 SSH Brute-Force (RULE-101)</button>
+        </form>
+        <form method="POST" action="/ingest_logs" style="display: inline;">
+            <input type="hidden" name="scenario" value="sqli_attack">
+            <button type="submit" class="btn btn-danger btn-sm">💉 SQL Injection (RULE-103)</button>
+        </form>
+        <form method="POST" action="/ingest_logs" style="display: inline;">
+            <input type="hidden" name="scenario" value="sudo_escalation">
+            <button type="submit" class="btn btn-warning btn-sm">🔑 Sudo Escalation (RULE-102)</button>
+        </form>
+        <form method="POST" action="/ingest_logs" style="display: inline;">
+            <input type="hidden" name="scenario" value="har_leak">
+            <button type="submit" class="btn btn-warning btn-sm">🍪 HAR Session Leak (RULE-106)</button>
+        </form>
+    </div>
+</div>
+
+<!-- Log File Upload & Raw Log Paste -->
+<div class="card" style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">📂 Upload Log File or Paste Raw Logs</h2>
+    <form method="POST" action="/ingest_logs" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 1.25rem;">
+        <div>
+            <label for="log_file" class="form-label">Upload Log File (.log, .txt, .json)</label>
+            <input type="file" id="log_file" name="log_file" accept=".log,.txt,.json" class="form-control">
+        </div>
+        <div>
+            <label for="raw_logs" class="form-label">Or Paste Raw Logs Below</label>
+            <textarea id="raw_logs" name="raw_logs" class="form-control" rows="6"
+                      placeholder="Paste sshd auth.log lines, Nginx access logs, or JSON alert arrays here..."></textarea>
+        </div>
+        <button type="submit" class="btn" style="align-self: flex-start;">🚀 Process & Ingest Logs</button>
+    </form>
+</div>
+
+<!-- Active SIEM Detection Rules Catalog -->
+<div class="card" style="margin-bottom: 2rem;">
+    <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">📖 Active SIEM Detection Rules Catalog</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Rule ID</th>
+                    <th>Rule Name</th>
+                    <th>Threat Code</th>
+                    <th>Vuln Code</th>
+                    <th>Regex Pattern</th>
+                    <th>Base Severity</th>
+                    <th>Default Control</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for rule in rules %}
+                <tr>
+                    <td style="font-weight: 600; color: var(--primary);">{{ rule.RuleID }}</td>
+                    <td>{{ rule.RuleName }}</td>
+                    <td><span class="badge badge-high">{{ rule.ThreatCode }}</span></td>
+                    <td><span class="badge badge-medium">{{ rule.VulnCode }}</span></td>
+                    <td><code style="font-size: 0.7rem; word-break: break-all;">{{ rule.LogPattern }}</code></td>
+                    <td>
+                        {% if rule.BaseSeverity >= 4 %}
+                            <span class="badge badge-critical">{{ rule.BaseSeverity }}/5</span>
+                        {% elif rule.BaseSeverity == 3 %}
+                            <span class="badge badge-high">{{ rule.BaseSeverity }}/5</span>
+                        {% else %}
+                            <span class="badge badge-medium">{{ rule.BaseSeverity }}/5</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ rule.DefaultControlType }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Recent Security Alerts Feed -->
+<div class="card">
+    <h2 style="font-size: 1.1rem; margin-bottom: 1rem;">🚨 Recent Security Alerts Feed (Latest 40)</h2>
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Alert ID</th>
+                    <th>Timestamp</th>
+                    <th>Rule ID & Threat</th>
+                    <th>Target Asset (IP)</th>
+                    <th>Attacker Source IP</th>
+                    <th>Raw Log Snippet</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for alert in alerts %}
+                <tr>
+                    <td style="font-weight: 500;">#{{ alert.AlertID }}</td>
+                    <td style="font-size: 0.8rem; color: var(--text-muted);">{{ alert.EventTimestamp }}</td>
+                    <td>
+                        <span class="badge badge-high">{{ alert.RuleID }}</span>
+                        <span style="font-size: 0.75rem; color: var(--text-muted);">{{ alert.ThreatCode }}</span>
+                    </td>
+                    <td>
+                        <div>{{ alert.AssetName }}</div>
+                        <div style="font-size: 0.75rem; color: var(--text-muted);">{{ alert.IPAddress }}</div>
+                    </td>
+                    <td><code style="color: var(--danger);">{{ alert.SourceIP }}</code></td>
+                    <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.75rem;">
+                        {{ alert.RawLog[:120] }}
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align: center; padding: 2rem; color: var(--text-muted);">
+                        No alerts yet. Upload logs or run a simulation above.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
